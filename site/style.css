@@ -378,6 +378,18 @@ thead .us { color: var(--accent); }
   .display .indent { padding-left: 0; }
 }
 
+/* ---------------- short screens (e.g. small laptop windows) ---------------- */
+@media (max-height: 700px) and (min-aspect-ratio: 1/1) {
+  .hero { padding-top: 84px; padding-bottom: 24px; }
+  .hero-title { font-size: min(7vw, 10.4vh); margin-bottom: 18px; }
+  .hero-sub { font-size: 14px; max-width: 380px; }
+}
+@media (max-height: 540px) and (min-aspect-ratio: 1/1) {
+  .hero-sub { display: none; }
+  .hero-title { font-size: min(7vw, 11.5vh); }
+  .scroll-hint { display: none; }
+}
+
 /* ---------------- reduced motion ---------------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
