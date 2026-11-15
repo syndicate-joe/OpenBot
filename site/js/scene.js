@@ -298,6 +298,101 @@ function init() {
     if (idx >= 0) anatIdx.textContent = `0${idx + 1}`;
   }
 
+  // ---------- tap reactions: poke Nova and it reacts ----------
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  const REACTIONS = [
+    { type: 'hop', say: 'Hi! 👋', dur: 1.0 },
+    { type: 'spin', say: 'Wheee!', dur: 1.15 },
+    { type: 'surprised', say: 'Whoa!', dur: 1.0 },
+    { type: 'wink', say: 'Ready to work 😉', dur: 1.2 },
+    { type: 'dizzy', say: "Okay, okay, I'm on it!", dur: 1.6 },
+  ];
+  let reaction = null, reactionIdx = 0, poked = false;
+  const bubble = document.createElement('div');
+  bubble.className = 'say';
+  bubble.setAttribute('role', 'status');
+  stage.appendChild(bubble);
+  const pokeBtn = document.createElement('button');
+  pokeBtn.type = 'button';
+  pokeBtn.className = 'poke-btn';
+  pokeBtn.textContent = 'Poke Nova';
+  pokeBtn.addEventListener('click', () => react());
+  stage.appendChild(pokeBtn);
+
+  // sparkle burst from the antenna (head-local space, so it travels with the head)
+  const SPARK = 40;
+  const sparkPos = new Float32Array(SPARK * 3), sparkVel = new Float32Array(SPARK * 3);
+  const sparkG = new THREE.BufferGeometry();
+  sparkG.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3));
+  const sparks = new THREE.Points(sparkG, new THREE.PointsMaterial({ color: 0xcdbdff, size: 0.07, transparent: true, opacity: 0, depthWrite: false }));
+  sparks.frustumCulled = false;
+  head.add(sparks);
+  let sparkT = -1;
+  function burst(now) {
+    for (let i = 0; i < SPARK; i++) {
+      const th = Math.random() * Math.PI * 2, ph = Math.random() * Math.PI * 0.75, sp = 1.2 + Math.random() * 1.6;
+      sparkPos.set([0, 1.42, 0], i * 3);
+      sparkVel.set([Math.sin(ph) * Math.cos(th) * sp, Math.cos(ph) * sp, Math.sin(ph) * Math.sin(th) * sp], i * 3);
+    }
+    sparkT = now;
+  }
+
+  function hitHead(clientX, clientY) {
+    if (progress > 0.12) return false; // only in the hero, not the exploded view
+    const r = canvas.getBoundingClientRect();
+    ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+    raycaster.setFromCamera(ndc, camera);
+    return raycaster.intersectObject(head, true).some((i) => i.object.isMesh && i.object !== sparks);
+  }
+
+  function react() {
+    const now = performance.now();
+    poked = true;
+    reaction = { ...REACTIONS[reactionIdx++ % REACTIONS.length], t0: now };
+    bubble.textContent = reaction.say;
+    bubble.classList.remove('on');
+    void bubble.offsetWidth; // restart the pop animation
+    bubble.classList.add('on');
+    if (!reduced) burst(now);
+    navigator.vibrate?.(12);
+    kick();
+  }
+
+  const bump = (k) => Math.sin(Math.PI * Math.min(1, Math.max(0, k)));
+  const inOut = (k) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
+  function applyReaction(type, k, t, s) {
+    const b = bump(k);
+    if (type === 'hop') {
+      const air = bump((k - 0.12) / 0.7);
+      head.position.y += air * 0.6 * s;
+      const squash = k < 0.12 ? bump(k / 0.12) : k > 0.82 ? bump((k - 0.82) / 0.18) : 0;
+      head.scale.set(s * (1 + 0.14 * squash), s * (1 - 0.16 * squash + 0.06 * air), s * (1 + 0.14 * squash));
+      head.rotation.z = Math.sin(k * Math.PI * 2) * 0.12;
+      eL.g.scale.y = eR.g.scale.y = 1 - 0.7 * air; // happy squint
+    } else if (type === 'spin') {
+      head.rotation.y += Math.PI * 2 * inOut(k);
+      head.position.y += b * 0.3 * s;
+      eL.g.scale.y = eR.g.scale.y = 1 - 0.6 * b;
+    } else if (type === 'surprised') {
+      head.position.z -= b * 0.6;
+      head.rotation.x -= b * 0.3;
+      const pop = 1 + 0.65 * bump(k / 0.6);
+      eL.g.scale.set(pop, pop, 1); eR.g.scale.set(pop, pop, 1);
+      ears.forEach((g) => (g.position.x = g.userData.side * (0.985 + 0.22 * b)));
+      bulb.material.emissiveIntensity = 1.5 + 7 * b;
+    } else if (type === 'wink') {
+      head.rotation.z = 0.3 * b;
+      head.position.y += 0.12 * b * s;
+      eR.g.scale.y = k > 0.18 && k < 0.7 ? 0.1 : 1;
+      eyes.position.x += 0.04 * b;
+    } else if (type === 'dizzy') {
+      eyes.rotation.z = t * 14 * (1 - k);
+      head.rotation.z = Math.sin(k * Math.PI * 7) * 0.22 * (1 - k);
+      head.rotation.y += Math.sin(k * Math.PI * 5) * 0.35 * (1 - k);
+    }
+  }
+
   function frame(now) {
     const T = target();
     const k = reduced ? 1 : 0.09;
@@ -319,7 +414,10 @@ function init() {
 
     if (!reduced && now > blinkAt + 150) blinkAt = now + 2200 + Math.random() * 3800;
     const blink = !reduced && now > blinkAt && now < blinkAt + 150;
-    eL.g.scale.y = eR.g.scale.y = blink ? 0.12 : 1;
+    eL.g.scale.set(1, blink ? 0.12 : 1, 1);
+    eR.g.scale.set(1, blink ? 0.12 : 1, 1);
+    eyes.rotation.z = 0;
+    head.rotation.z = 0;
 
     // explode
     front.position.set(0, 0.1 * e, 2.0 * e);
@@ -333,6 +431,26 @@ function init() {
     ring.rotation.z = 0.25 * e;
     orbit.rotation.y = t * 0.6;
     bulb.material.emissiveIntensity = 1.2 + Math.sin(t * 3) * 0.6;
+
+    if (reaction) {
+      const rk = (now - reaction.t0) / 1000 / reaction.dur;
+      if (rk >= 1 || progress > 0.12) { reaction = null; bubble.classList.remove('on'); }
+      else if (!reduced) applyReaction(reaction.type, rk, t, cur.s);
+    }
+    if (sparkT >= 0) {
+      const dt = (now - sparkT) / 1000;
+      if (dt > 1) { sparkT = -1; sparks.material.opacity = 0; }
+      else {
+        const pa = sparkG.attributes.position;
+        for (let i = 0; i < SPARK; i++) {
+          pa.array[i * 3] = sparkVel[i * 3] * dt;
+          pa.array[i * 3 + 1] = 1.42 + sparkVel[i * 3 + 1] * dt - 2.2 * dt * dt;
+          pa.array[i * 3 + 2] = sparkVel[i * 3 + 2] * dt;
+        }
+        pa.needsUpdate = true;
+        sparks.material.opacity = 1 - dt;
+      }
+    }
 
     // solid → technical line-art crossfade
     const solidO = Math.max(0, 1 - e * 1.15);
@@ -366,6 +484,21 @@ function init() {
       m.style.opacity = showMarkers ? (i === active || reduced ? 1 : 0.5) : 0;
     });
 
+    if (bubble.classList.contains('on')) {
+      // beside the head at eye level: left by default, right if the left side is too tight
+      const bw = bubble.offsetWidth, bh = bubble.offsetHeight;
+      v3.set(-1.12, 0.62, 0); head.localToWorld(v3).project(camera);
+      let bx = (v3.x * 0.5 + 0.5) * w - bw, by = (-v3.y * 0.5 + 0.5) * h - bh;
+      let right = false;
+      if (bx < 12) {
+        v3.set(1.12, 0.62, 0); head.localToWorld(v3).project(camera);
+        bx = (v3.x * 0.5 + 0.5) * w; by = (-v3.y * 0.5 + 0.5) * h - bh; right = true;
+      }
+      bubble.classList.toggle('right', right);
+      bubble.style.transform = `translate(${Math.max(8, Math.min(w - bw - 8, bx))}px, ${Math.max(navBottom + 8, by)}px)`;
+    }
+    pokeBtn.hidden = progress > 0.12;
+
     renderer.render(scene, camera);
     needsRender = false;
   }
@@ -386,6 +519,24 @@ function init() {
       pointer.ty = -((ev.clientY / innerHeight) * 2 - 1);
     }, { passive: true });
   }
+  let hoverHit = false;
+  addEventListener('pointermove', (ev) => {
+    if (ev.pointerType !== 'mouse') return;
+    const hit = !ev.target.closest('a, button, input, summary') && hitHead(ev.clientX, ev.clientY);
+    if (hit !== hoverHit) { hoverHit = hit; stage.classList.toggle('can-poke', hit); }
+  }, { passive: true });
+  addEventListener('pointerdown', (ev) => {
+    if (ev.target.closest('a, button, input, summary, dialog')) return;
+    if (hitHead(ev.clientX, ev.clientY)) react();
+  });
+  // a gentle nudge if nobody has poked Nova yet
+  setTimeout(() => {
+    if (poked || progress > 0.05) return;
+    bubble.textContent = 'psst… tap me';
+    bubble.classList.add('on', 'hint');
+    kick();
+    setTimeout(() => { if (!reaction) bubble.classList.remove('on'); bubble.classList.remove('hint'); }, 3200);
+  }, 4500);
   document.addEventListener('visibilitychange', kick);
   new IntersectionObserver(([en]) => { visible = en.isIntersecting; kick(); }).observe(stage);
   canvas.addEventListener('webglcontextlost', (ev) => { ev.preventDefault(); document.documentElement.classList.add('no-webgl'); });
@@ -396,5 +547,5 @@ function init() {
   Object.assign(cur, target()); // first frame starts settled
   if (reduced) setActive(-1);
   kick();
-  window.__openbotScene = { get progress() { return progress; }, get e() { return cur.e; }, settle(n = 120) { readScroll(); for (let i = 0; i < n; i++) frame(performance.now()); } };
+  window.__openbotScene = { get progress() { return progress; }, get e() { return cur.e; }, settle(n = 120) { readScroll(); for (let i = 0; i < n; i++) frame(performance.now()); }, headPx() { head.getWorldPosition(v3).project(camera); return { x: (v3.x * 0.5 + 0.5) * w, y: (-v3.y * 0.5 + 0.5) * h }; } };
 }
