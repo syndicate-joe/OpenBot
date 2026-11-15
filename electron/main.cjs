@@ -27,7 +27,7 @@ async function startServer() {
   process.env.PORT = String(port);
   process.env.OPENBOT_DATA ||= app.isPackaged ? path.join(app.getPath('userData'), 'data') : path.join(ROOT, 'data');
   // Packaged apps don't inherit the shell PATH; make Homebrew tools (ffmpeg, yt-dlp) findable.
-  process.env.PATH = ['/opt/homebrew/bin', '/usr/local/bin', process.env.PATH].join(path.delimiter);
+  if (process.platform !== 'win32') process.env.PATH = ['/opt/homebrew/bin', '/usr/local/bin', process.env.PATH].join(path.delimiter);
   await import(pathToFileURL(path.join(ROOT, 'server', 'index.js')).href);
   for (let i = 0; i < 100; i++) {
     try { const r = await fetch(`http://127.0.0.1:${port}/api/overview`); if (r.ok) return; } catch {}
@@ -71,13 +71,16 @@ function showWindow() {
 }
 
 function createTray() {
-  const img = nativeImage.createFromPath(path.join(ROOT, 'public', 'img', 'trayTemplate.png'));
-  img.setTemplateImage(true);
+  // macOS uses a monochrome template icon; Windows/Linux trays need the colored app icon.
+  const img = process.platform === 'darwin'
+    ? nativeImage.createFromPath(path.join(ROOT, 'public', 'img', 'trayTemplate.png'))
+    : nativeImage.createFromPath(path.join(ROOT, 'public', 'img', 'icon-192.png')).resize({ width: 32, height: 32 });
+  if (process.platform === 'darwin') img.setTemplateImage(true);
   tray = new Tray(img);
   tray.setToolTip('OpenBot: your bots are on');
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Open OpenBot', click: showWindow },
-    { label: 'New bot…', click: () => { showWindow(); win.webContents.executeJavaScript("document.dispatchEvent(new KeyboardEvent('keydown',{key:'n',metaKey:true}))"); } },
+    { label: 'New bot…', click: () => { showWindow(); win.webContents.executeJavaScript("document.dispatchEvent(new KeyboardEvent('keydown',{key:'n',metaKey:true,ctrlKey:true}))"); } },
     { type: 'separator' },
     { label: 'Bots keep working while the window is closed', enabled: false },
     { label: 'Quit OpenBot', click: () => { quitting = true; app.quit(); } },

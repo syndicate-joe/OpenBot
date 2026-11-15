@@ -6,6 +6,7 @@ import { all, get, run, now, uid, WORKSPACE_DIR } from '../db.js';
 import { emit, logActivity } from '../events.js';
 import { search, askVideo } from '../video/library.js';
 import { fmtTime } from '../video/pipeline.js';
+import { BROWSER_TOOLS } from './browser.js';
 
 export const workspaceOf = (agentId) => {
   const d = path.join(WORKSPACE_DIR, agentId);
@@ -59,6 +60,7 @@ function sandboxed(cmd, cwd) {
       (allow file-write* (subpath "${cwd}") (subpath "/private/tmp") (subpath "/private/var/folders") (subpath "/dev"))`;
     return ['/usr/bin/sandbox-exec', ['-p', profile, '/bin/zsh', '-c', cmd]];
   }
+  if (process.platform === 'win32') return ['powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', cmd]];
   return ['/bin/sh', ['-c', cmd]];
 }
 
@@ -66,7 +68,7 @@ function runCommand(agentId, command, timeoutMs = 60000) {
   const cwd = workspaceOf(agentId);
   const [bin, args] = sandboxed(command, cwd);
   return new Promise((resolve) => {
-    const p = spawn(bin, args, { cwd, env: { ...process.env, HOME: cwd } });
+    const p = spawn(bin, args, { cwd, env: { ...process.env, HOME: cwd, USERPROFILE: process.platform === 'win32' ? cwd : process.env.USERPROFILE }, windowsHide: true });
     let out = '';
     const t = setTimeout(() => { p.kill('SIGKILL'); out += '\n[killed: timeout]'; }, timeoutMs);
     p.stdout.on('data', (d) => (out += d));
@@ -92,6 +94,7 @@ export const TOOLS = [
     description: 'Open a URL in your browser and read its text content.',
     parameters: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'] },
     run: async ({ url }, ctx) => {
+      if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
       const r = await fetch(url, { headers: { 'User-Agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(20000) });
       const html = await r.text();
       const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1]?.trim() || url;
@@ -257,6 +260,7 @@ export const TOOLS = [
       return 'Notification sent.';
     },
   },
+  ...BROWSER_TOOLS,
 ];
 
 export const TOOL_MAP = Object.fromEntries(TOOLS.map((t) => [t.name, t]));
@@ -267,6 +271,7 @@ export const HARD_LIMITS = [
   /\b(passwd|sudo|security\s+(add|delete|find)-|keychain)/i,
   /\brm\s+-rf\s+[\/~]/i,
   /\b(mkfs|diskutil\s+erase|shutdown|reboot)\b/i,
+  /\b(format-volume|remove-item\s+.*-recurse.*\s+[a-z]:\\?$|rd\s+\/s\s+[a-z]:\\)/i,
 ];
 
 export function ruleFor(agent, toolName) {

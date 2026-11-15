@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>OpenBot — Free AI teammates with their own computers</title>
+  <meta name="description" content="OpenBot is a free, open-source desktop app for macOS and Windows: always-on AI teammates that browse, code, research and search your videos — on your own machine, for $0." />
+  <meta name="theme-color" content="#0b0b0c" />
+  <link rel="icon" href="media/logo.svg" type="image/svg+xml" />
+  <link rel="icon" href="media/favicon-32.png" sizes="32x32" />
+  <meta property="og:title" content="OpenBot — AI teammates with their own computers" />
+  <meta property="og:description" content="Free, open-source, runs locally. Download for macOS and Windows." />
+  <meta property="og:image" content="media/chat-computer-dark.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script>document.documentElement.classList.add('js');</script>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#download">Skip to download</a>
+
+  <div class="progress" aria-hidden="true"><i></i></div>
+
+  <header class="nav" id="nav">
+    <a class="brand" href="#top" aria-label="OpenBot home">
+      <img src="media/logo.svg" alt="" width="28" height="28" />
+      <span>OPENBOT</span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#anatomy">Anatomy</a>
+      <a href="#how">How it works</a>
+      <a href="#crew">Crew</a>
+      <a href="#new">What's new</a>
+      <a href="https://github.com/satiricalguru/OpenBot" rel="noopener">GitHub</a>
+    </nav>
+    <a class="btn btn-pill magnetic" href="#download">Download</a>
+  </header>
+
+  <main id="top">
+    <!-- ============ HERO + EXPLODED ANATOMY (one sticky 3D stage) ============ -->
+    <section class="stage-track" id="anatomy" aria-label="OpenBot introduction and anatomy">
+      <div class="stage">
+        <canvas id="gl" aria-hidden="true"></canvas>
+        <img class="gl-fallback" src="media/icon-512.png" alt="" width="360" height="360" />
+
+        <div class="hero" id="hero">
+          <p class="eyebrow mono"><span class="dot"></span> v<span data-version>0.3.0</span> · Free &amp; open source<span class="hide-sm"> · macOS &amp; Windows</span></p>
+          <h1 class="hero-title" aria-label="AI teammates with their own computers">
+            <span class="line l1"><span>AI TEAMMATES</span></span>
+            <span class="line l2"><span>WITH THEIR</span></span>
+            <span class="line l3"><span>OWN COMPUTERS</span></span>
+          </h1>
+          <div class="hero-foot">
+            <p class="hero-sub">OpenBot gives you a crew of always-on bots that browse, code, research and search your videos. They run on your machine and cost&nbsp;$0.</p>
+            <div class="dl-row" data-dl-row>
+              <a class="btn btn-primary magnetic" data-dl="mac" href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-mac-arm64.dmg">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.2 1-4 2.5-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.6-1-2.6-4zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg>
+                <span><b>Download for Mac</b><small>Apple silicon · .dmg</small></span>
+              </a>
+              <a class="btn btn-ghost magnetic" data-dl="win" href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-windows-x64-setup.exe">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5 10.4 4.5v7H3zM11.4 4.4 21 3v8.5h-9.6zM3 12.5h7.4v7L3 18.5zM11.4 12.5H21V21l-9.6-1.4z"/></svg>
+                <span><b>Download for Windows</b><small>x64 · installer</small></span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="anat" id="anat">
+          <div class="anat-head">
+            <p class="mono kicker">— Anatomy of a teammate</p>
+            <p class="anat-count mono"><span id="anatIdx">01</span> / 06</p>
+          </div>
+          <ol class="anat-list" id="anatList">
+            <li data-part="0"><span class="mono">01</span><div><h3>Face</h3><p>Expressive, not uncanny. Eyes that blink, glance around and hop with a red badge when they need you. Design every teammate's look.</p></div></li>
+            <li data-part="1"><span class="mono">02</span><div><h3>Computer core</h3><p>Its own sandboxed terminal, files and now a real Chrome it can click through, streamed live to your screen.</p></div></li>
+            <li data-part="2"><span class="mono">03</span><div><h3>Memory ring</h3><p>Remembers your preferences. Learns a skill from one walkthrough. Repeats it on a schedule.</p></div></li>
+            <li data-part="3"><span class="mono">04</span><div><h3>Antenna</h3><p>Always on. Proactive mode researches while you're away, and closing the window keeps the crew working from the menu bar.</p></div></li>
+            <li data-part="4"><span class="mono">05</span><div><h3>Ears</h3><p>Text it from anywhere through the Telegram and Slack bridges. No public URL, no cloud relay.</p></div></li>
+            <li data-part="5"><span class="mono">06</span><div><h3>Back shell</h3><p>You hold the keys: Allow, Ask or Block for every tool. Passwords, sudo and the keychain are always off-limits.</p></div></li>
+          </ol>
+        </div>
+        <div class="markers" id="markers" aria-hidden="true"></div>
+        <p class="scroll-hint mono" aria-hidden="true">Scroll to take it apart <i></i></p>
+      </div>
+    </section>
+
+    <!-- ============ STATEMENT ============ -->
+    <section class="statement" aria-label="Why OpenBot">
+      <div class="marquee" aria-hidden="true"><div class="marquee-inner" data-marquee><span>HIRE · TEACH · DELEGATE · REVIEW ·&nbsp;</span><span>HIRE · TEACH · DELEGATE · REVIEW ·&nbsp;</span></div></div>
+      <div class="wrap statement-grid">
+        <p class="mono kicker">— Thesis</p>
+        <p class="big-quote" data-words>Always-on AI teammates arrived in 2026, behind expensive plans. OpenBot gives you the same idea for zero dollars, on your own machine, with your own data.</p>
+      </div>
+    </section>
+
+    <!-- ============ HOW IT WORKS ============ -->
+    <section class="how wrap" id="how" aria-labelledby="how-title">
+      <div class="section-head">
+        <p class="mono kicker">— How it works</p>
+        <h2 id="how-title" class="display reveal">GIVE IT REAL WORK.<br /><span class="indent">GET FINISHED WORK BACK.</span></h2>
+      </div>
+      <ol class="steps">
+        <li class="reveal"><span class="mono num">01</span><h3>Hire</h3><p>Start with the crew (Nova, Scout, Reel and Forge) or design your own teammate in seconds.</p></li>
+        <li class="reveal"><span class="mono num">02</span><h3>Teach</h3><p>Walk through a task once in chat, then click <em>Save chat as a skill</em>. Next time it just does it.</p></li>
+        <li class="reveal"><span class="mono num">03</span><h3>Delegate</h3><p>Mention <code>@Scout</code> or <code>@all</code>. The lead hands off work to teammates and runs background tasks in parallel.</p></li>
+        <li class="reveal"><span class="mono num">04</span><h3>Review</h3><p>Approve the risky steps from an approval card, or from your phone. Read the files it made. Ship.</p></li>
+      </ol>
+    </section>
+
+    <!-- ============ PRODUCT DECK ============ -->
+    <section class="deck-track" aria-label="Product screenshots">
+      <div class="deck-sticky">
+        <div class="wrap deck-copy">
+          <p class="mono kicker">— The app</p>
+          <h2 class="display">A MESSENGER<br />FOR YOUR CREW.</h2>
+          <p class="muted deck-caption" id="deckCaption">Chat with a bot and watch its computer work.</p>
+          <button class="btn btn-ghost play" id="playDemo" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg> <span>Watch the demo</span>
+          </button>
+        </div>
+        <div class="deck" id="deck">
+          <figure class="card" data-cap="Chat with a bot and watch its computer work."><img src="media/chat-computer-dark.jpg" alt="OpenBot chat with Scout next to its Computer panel" loading="lazy" width="1440" height="900" /></figure>
+          <figure class="card" data-cap="Crews: bots hand off work to each other in a group chat."><img src="media/crew-dark.jpg" alt="Crew group chat where bots collaborate" loading="lazy" width="1440" height="900" /></figure>
+          <figure class="card" data-cap="Search inside videos by what's said and what's seen."><img src="media/video-dark.jpg" alt="Video page with multimodal search" loading="lazy" width="1440" height="900" /></figure>
+          <figure class="card" data-cap="Design how every teammate looks."><img src="media/studio-dark.jpg" alt="Bot studio customizer" loading="lazy" width="1440" height="900" /></figure>
+          <figure class="card" data-cap="Light mode, if you must."><img src="media/chat-computer-light.jpg" alt="OpenBot in light mode" loading="lazy" width="1440" height="900" /></figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CREW (interactive) ============ -->
+    <section class="crew wrap" id="crew" aria-labelledby="crew-title">
+      <div class="section-head split">
+        <div>
+          <p class="mono kicker">— Meet the crew</p>
+          <h2 id="crew-title" class="display reveal">THEY BLINK.<br />THEY HOP.<br /><span class="indent">THEY SHIP.</span></h2>
+        </div>
+        <p class="muted crew-sub reveal">Every bot is procedurally drawn and alive: it glances around when idle, bobs while working and hops when it needs you. Switch their state, or shuffle to design a new hire.</p>
+      </div>
+      <div class="crew-grid" id="crewGrid"></div>
+      <div class="crew-actions">
+        <button class="btn btn-ghost magnetic" id="shuffle" type="button">↻ Shuffle a new teammate</button>
+        <div class="seg" role="group" aria-label="Bot state">
+          <button type="button" data-state="idle" aria-pressed="true">Idle</button>
+          <button type="button" data-state="working" aria-pressed="false">Working</button>
+          <button type="button" data-state="waiting" aria-pressed="false">Needs you</button>
+          <button type="button" data-state="speaking" aria-pressed="false">Talking</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WHAT'S NEW ============ -->
+    <section class="new wrap" id="new" aria-labelledby="new-title">
+      <div class="section-head">
+        <p class="mono kicker">— New in 0.3</p>
+        <h2 id="new-title" class="display reveal">THE ROADMAP,<br /><span class="indent">SHIPPED.</span></h2>
+      </div>
+      <div class="bento">
+        <article class="tile t-browser reveal">
+          <div class="mock browser-mock" aria-hidden="true">
+            <div class="mb-bar"><i></i><i></i><i></i><span>github.com/trending</span><b class="live">● LIVE</b></div>
+            <div class="mb-body">
+              <div class="mb-line w70"></div><div class="mb-line w90"></div><div class="mb-line w50"></div>
+              <div class="mb-line w80"></div><div class="mb-line w60"></div>
+              <span class="cursor-dot"></span>
+            </div>
+          </div>
+          <h3>Real browser control</h3>
+          <p>Bots open, read, click and type in their own Chrome or Edge profile, and you watch every step live in the Computer panel. Clicking and typing ask first, and password fields are always refused.</p>
+        </article>
+        <article class="tile t-chat reveal">
+          <div class="mock phone-mock" aria-hidden="true">
+            <div class="bubble me">summarize today's PRs</div>
+            <div class="bubble bot"><b>Nova</b> On it: reading 6 PRs…</div>
+            <div class="bubble bot typing"><i></i><i></i><i></i></div>
+          </div>
+          <h3>Telegram &amp; Slack bridges</h3>
+          <p>Text your bots from your phone. Telegram uses long polling and Slack uses Socket Mode, so OpenBot stays on 127.0.0.1. Only chats you allow get through.</p>
+        </article>
+        <article class="tile t-os reveal">
+          <div class="os-badges" aria-hidden="true"><span>macOS</span><span>Windows</span><span>Linux</span></div>
+          <h3>Windows &amp; Linux installers</h3>
+          <p>A Windows setup .exe, plus a Linux AppImage and .deb, built on native CI runners for every release.</p>
+        </article>
+        <article class="tile t-team reveal">
+          <div class="avatars" aria-hidden="true"><span>A</span><span>J</span><span>M</span><span>+</span></div>
+          <h3>Team mode with sign-in</h3>
+          <p>Accounts with admin and member roles, scrypt-hashed passwords and rate-limited logins. Sign-in turns on automatically when you share OpenBot on your network.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ NUMBERS ============ -->
+    <section class="numbers wrap" aria-label="OpenBot by the numbers">
+      <div class="num reveal"><b>$0</b><span>forever. MIT licensed.</span></div>
+      <div class="num reveal"><b data-count="24">24</b><span>built-in agent tools</span></div>
+      <div class="num reveal"><b data-count="5">5</b><span>free model providers</span></div>
+      <div class="num reveal"><b>0</b><span>accounts, telemetry or cloud</span></div>
+    </section>
+
+    <!-- ============ COMPARISON ============ -->
+    <section class="compare wrap" aria-labelledby="cmp-title">
+      <div class="section-head">
+        <p class="mono kicker">— The honest table</p>
+        <h2 id="cmp-title" class="display reveal">SAME IDEA.<br /><span class="indent">NO SUBSCRIPTION.</span></h2>
+      </div>
+      <div class="table-scroll reveal" tabindex="0" role="region" aria-label="Comparison table">
+        <table>
+          <thead><tr><th scope="col"><span class="sr">Feature</span></th><th scope="col" class="us">OpenBot</th><th scope="col">Grok Bot (xAI)</th><th scope="col">dots (OpenAI)</th><th scope="col">muse.ai</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Price</th><td class="us">Free, MIT</td><td>Premium plans</td><td>Pro / Business plans</td><td>Paid plans</td></tr>
+            <tr><th scope="row">Runs fully local &amp; private</th><td class="us">✓</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><th scope="row">Bots with their own computer</th><td class="us">✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+            <tr><th scope="row">Group chats with handoffs</th><td class="us">✓</td><td>✓</td><td>—</td><td>—</td></tr>
+            <tr><th scope="row">Skills, routines, proactive mode</th><td class="us">✓</td><td>✓</td><td>✓</td><td>—</td></tr>
+            <tr><th scope="row">AI video search (speech + visuals)</th><td class="us">✓</td><td>—</td><td>—</td><td>✓</td></tr>
+            <tr><th scope="row">Bring any model</th><td class="us">✓</td><td>—</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="fine">OpenBot is an independent project and is not affiliated with xAI, OpenAI or muse.ai. Competitor details are summarized from their public pages and may change.</p>
+    </section>
+
+    <!-- ============ DOWNLOAD ============ -->
+    <section class="download" id="download" aria-labelledby="dl-title">
+      <div class="wrap">
+        <p class="mono kicker">— Download</p>
+        <h2 id="dl-title" class="display dl-title">GET YOUR CREW.</h2>
+        <p class="muted dl-meta">Version <b data-version>0.3.0</b><span data-date></span> · Free forever · <a href="https://github.com/satiricalguru/OpenBot/releases/latest" rel="noopener">Release notes ↗</a></p>
+
+        <div class="os-cards">
+          <article class="os-card" data-os="mac">
+            <header><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.2 1-4 2.5-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.2-.8s1.9.8 3.2.8c1.3 0 2.2-1.2 3-2.4.9-1.4 1.3-2.7 1.3-2.8-.1 0-2.6-1-2.6-4zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg><h3>macOS</h3><span class="rec mono">For you</span></header>
+            <p class="req">Apple silicon (M1 or newer)</p>
+            <a class="btn btn-primary block" data-dl="mac" href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-mac-arm64.dmg">Download .dmg <small data-size="OpenBot-mac-arm64.dmg"></small></a>
+            <a class="alt" href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-mac-arm64.zip">or .zip</a>
+            <ol class="install"><li>Open the .dmg and drag OpenBot to Applications.</li><li>First launch blocked? Open <b>System Settings → Privacy &amp; Security → Open Anyway</b>. The app isn't notarized yet.</li><li><code>brew install ffmpeg ollama &amp;&amp; ollama pull qwen3:8b</code></li></ol>
+          </article>
+          <article class="os-card" data-os="win">
+            <header><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5.5 10.4 4.5v7H3zM11.4 4.4 21 3v8.5h-9.6zM3 12.5h7.4v7L3 18.5zM11.4 12.5H21V21l-9.6-1.4z"/></svg><h3>Windows</h3><span class="rec mono">For you</span></header>
+            <p class="req">Windows 10 / 11, 64-bit</p>
+            <a class="btn btn-primary block" data-dl="win" href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-windows-x64-setup.exe">Download installer <small data-size="OpenBot-windows-x64-setup.exe"></small></a>
+            <a class="alt" href="https://github.com/satiricalguru/OpenBot/releases/latest" rel="noopener">all files</a>
+            <ol class="install"><li>Run the installer and pick a folder.</li><li>SmartScreen warning? Click <b>More info → Run anyway</b>. The installer is unsigned.</li><li><code>winget install Gyan.FFmpeg Ollama.Ollama</code> then <code>ollama pull qwen3:8b</code></li></ol>
+          </article>
+          <article class="os-card" data-os="linux">
+            <header><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c-2 0-3.2 1.7-3.2 4.1 0 1.4.3 2.3-.6 3.6C6.9 11.6 5.5 13.7 5.5 16c0 .6.1 1.1.2 1.6-.8.4-1.7.9-1.7 1.7 0 1.2 2.3 1.2 3.6 2.2.7.5 1.6.5 2.2 0 .5-.4 1.3-.5 2.2-.5s1.7.1 2.2.5c.6.5 1.5.5 2.2 0 1.3-1 3.6-1 3.6-2.2 0-.8-.9-1.3-1.7-1.7.1-.5.2-1 .2-1.6 0-2.3-1.4-4.4-2.7-6.3-.9-1.3-.6-2.2-.6-3.6C15.2 3.7 14 2 12 2z"/></svg><h3>Linux</h3><span class="rec mono">For you</span></header>
+            <p class="req">x86_64 · AppImage or .deb</p>
+            <a class="btn btn-primary block" data-dl="linux" href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-linux-x86_64.AppImage">Download AppImage <small data-size="OpenBot-linux-x86_64.AppImage"></small></a>
+            <a class="alt" href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-linux-amd64.deb">or .deb</a>
+            <ol class="install"><li><code>chmod +x OpenBot-linux-x86_64.AppImage</code> and run it.</li><li>Install ffmpeg and <a href="https://ollama.com" rel="noopener">Ollama</a>, then <code>ollama pull qwen3:8b</code>.</li></ol>
+          </article>
+        </div>
+
+        <div class="source">
+          <p class="mono kicker">— Or run from source</p>
+          <div class="code">
+            <pre><code id="srcCode">git clone https://github.com/satiricalguru/OpenBot.git
+cd OpenBot &amp;&amp; npm install
+npm run app</code></pre>
+            <button class="copy" type="button" data-copy="srcCode">Copy</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section class="faq wrap" aria-labelledby="faq-title">
+      <div class="section-head">
+        <p class="mono kicker">— Questions</p>
+        <h2 id="faq-title" class="display reveal">ASKED<br /><span class="indent">&amp; ANSWERED.</span></h2>
+      </div>
+      <div class="faq-list">
+        <details class="reveal"><summary>Is it really free?</summary><p>Yes. OpenBot is MIT licensed, with no accounts, seats or subscriptions. You bring the model: Ollama runs fully local for free, and Groq, OpenRouter and Gemini have free tiers.</p></details>
+        <details class="reveal"><summary>What do I need to run it?</summary><p>A Mac with Apple silicon, a 64-bit Windows 10/11 PC, or x86_64 Linux. For bots you need a tool-capable model (e.g. <code>ollama pull qwen3:8b</code>). For the video brain you need <code>ffmpeg</code>. The first video downloads open Whisper and CLIP models (~250 MB) once.</p></details>
+        <details class="reveal"><summary>Why does my OS warn me when I open it?</summary><p>This release isn't signed with a paid Apple or Microsoft certificate yet. The release pipeline is ready to sign and notarize as soon as certificates are added. Until then, macOS asks you to choose <em>Open Anyway</em> in Privacy &amp; Security, and Windows SmartScreen asks you to choose <em>Run anyway</em>. The full source is on GitHub if you'd rather build it yourself.</p></details>
+        <details class="reveal"><summary>Is my data private?</summary><p>Chats, files, videos and embeddings live in a local SQLite database and folder. The server listens on 127.0.0.1 only. There's no telemetry. If you pick a cloud model provider, your prompts go to that provider.</p></details>
+        <details class="reveal"><summary>Can a bot do something dangerous?</summary><p>Every tool has an Allow, Ask or Block rule. Shell commands, API calls, deletions, browser clicks and typing default to <em>Ask</em>. Passwords, sudo, the keychain and destructive commands are always blocked. On macOS, commands run in a Seatbelt sandbox that can only write inside the bot's workspace.</p></details>
+        <details class="reveal"><summary>Can my team share one OpenBot?</summary><p>Yes. Turn on Team mode in Settings, or run with <code>OPENBOT_HOST=0.0.0.0</code> to require sign-in automatically. Everyone shares the same crew, chats and videos, and admins manage settings, bridges and people. Put HTTPS in front of it before exposing it beyond your network.</p></details>
+      </div>
+    </section>
+
+    <!-- ============ FINAL CTA ============ -->
+    <section class="final" aria-label="Download OpenBot">
+      <div class="final-bots" id="finalBots" aria-hidden="true"></div>
+      <h2 class="display final-title">YOUR CREW<br />IS WAITING.</h2>
+      <div class="dl-row center">
+        <a class="btn btn-primary magnetic" data-dl="mac" href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-mac-arm64.dmg"><span><b>Download for Mac</b></span></a>
+        <a class="btn btn-ghost magnetic" data-dl="win" href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-windows-x64-setup.exe"><span><b>Download for Windows</b></span></a>
+      </div>
+      <a class="star" href="https://github.com/satiricalguru/OpenBot" rel="noopener">★ Star on GitHub</a>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-grid">
+      <div><p class="mono kicker">Links</p><a href="https://github.com/satiricalguru/OpenBot">GitHub</a><a href="https://github.com/satiricalguru/OpenBot/releases">Releases</a><a href="https://github.com/satiricalguru/OpenBot/blob/main/CONTRIBUTING.md">Contributing</a></div>
+      <div><p class="mono kicker">Project</p><a href="https://github.com/satiricalguru/OpenBot/blob/main/LICENSE">MIT License</a><a href="https://github.com/satiricalguru/OpenBot/blob/main/SECURITY.md">Security</a><a href="https://github.com/satiricalguru/OpenBot/issues/new/choose">Report an issue</a></div>
+      <p class="fine">Built with Node, Electron, SQLite, ffmpeg, transformers.js, Whisper, CLIP and your favorite open model.</p>
+    </div>
+    <p class="wordmark" aria-hidden="true">OPENBOT</p>
+  </footer>
+
+  <dialog class="video-dialog" id="videoDialog" aria-label="OpenBot demo video">
+    <button class="close" type="button" aria-label="Close video">✕</button>
+    <video id="demoVideo" controls playsinline preload="none" poster="media/chat-computer-dark.jpg" width="1440" height="900">
+      <source src="media/demo.mp4" type="video/mp4" />
+    </video>
+  </dialog>
+
+  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/scene.js"></script>
+</body>
+</html>

@@ -12,9 +12,14 @@ import { reloadRoutines, runRoutine, startProactiveLoop } from './agents/schedul
 import { enqueue, resumePending, makeClip, importFromUrl, captions, videoDir } from './video/pipeline.js';
 import { createVideoRecord, serialize, deleteVideo, search, searchLibrary, askVideo } from './video/library.js';
 import { seed } from './seed.js';
+import { authMiddleware, requireAdmin, mountAuth } from './auth.js';
+import { startBridges, publicBridges, saveBridges } from './bridges.js';
+import { screenFile, browserLive, closeBrowser, findBrowser } from './agents/browser.js';
 
 const app = express();
 app.use(express.json({ limit: '5mb' }));
+app.use(authMiddleware);
+mountAuth(app);
 const PUBLIC = path.join(ROOT, 'public');
 const upload = multer({ dest: path.join(DATA, 'uploads'), limits: { fileSize: 20 * 1024 ** 3 } });
 const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((e) => { console.error(e); res.status(500).json({ error: e.message }); });
@@ -30,7 +35,7 @@ app.get('/api/settings', wrap(async (req, res) => {
     whisperModel: getSetting('whisperModel', 'Xenova/whisper-base'),
   });
 }));
-app.put('/api/settings', wrap(async (req, res) => {
+app.put('/api/settings', requireAdmin, wrap(async (req, res) => {
   const { llm, whisperModel } = req.body;
   if (llm) {
     const cur = getLLMConfig();
@@ -41,6 +46,10 @@ app.put('/api/settings', wrap(async (req, res) => {
   if (whisperModel) setSetting('whisperModel', whisperModel);
   res.json({ ok: true });
 }));
+// ---------------- bridges (Telegram / Slack) ----------------
+app.get('/api/bridges', requireAdmin, (req, res) => res.json(publicBridges()));
+app.put('/api/bridges', requireAdmin, (req, res) => { saveBridges(req.body || {}); res.json(publicBridges()); });
+
 app.post('/api/settings/models', wrap(async (req, res) => res.json(await listModels({ ...getLLMConfig(), ...req.body }))));
 
 // ---------------- agents ----------------
@@ -125,6 +134,16 @@ app.get('/api/agents/:id/file', (req, res) => {
   if (req.query.download) return res.download(f);
   res.sendFile(f);
 });
+
+// live browser screen
+app.get('/api/agents/:id/screen', (req, res) => {
+  const f = screenFile(req.params.id);
+  if (!fs.existsSync(f)) return res.status(404).end();
+  res.set('Cache-Control', 'no-store');
+  res.sendFile(f);
+});
+app.get('/api/agents/:id/browser', (req, res) => res.json({ live: browserLive(req.params.id), available: !!findBrowser() }));
+app.delete('/api/agents/:id/browser', wrap(async (req, res) => { await closeBrowser(req.params.id); res.json({ ok: true }); }));
 
 // ---------------- threads & messages ----------------
 app.get('/api/threads', (req, res) => {
@@ -323,6 +342,7 @@ app.get('/api/overview', (req, res) => {
 
 // ---------------- static ----------------
 app.use('/media', express.static(VIDEO_DIR, { maxAge: '1h' }));
+app.get('/login', (req, res) => res.sendFile(path.join(PUBLIC, 'login.html')));
 app.get('/embed/:id', (req, res) => res.sendFile(path.join(PUBLIC, 'embed.html')));
 app.use(express.static(PUBLIC));
 app.get('/*splat', (req, res) => res.sendFile(path.join(PUBLIC, 'index.html')));
@@ -338,6 +358,7 @@ await ensureDefaultModel();
 reloadRoutines();
 startProactiveLoop();
 resumePending();
+startBridges();
 app.listen(PORT, HOST, () => {
   const cfg = getLLMConfig();
   console.log(`\n  ◉ OpenBot is running → http://localhost:${PORT}\n    model: ${cfg.provider}/${cfg.model || '(none — open Settings)'}\n`);

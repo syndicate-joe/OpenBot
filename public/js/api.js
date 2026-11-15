@@ -6,6 +6,7 @@ async function req(method, url, body) {
   const r = await fetch(url, opts);
   const ct = r.headers.get('content-type') || '';
   const data = ct.includes('json') ? await r.json() : await r.text();
+  if (r.status === 401 && data?.auth) { location.href = `/login?next=${encodeURIComponent(location.pathname)}`; throw new Error('Sign in required'); }
   if (!r.ok) throw new Error(data?.error || r.statusText);
   return data;
 }

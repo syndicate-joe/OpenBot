@@ -486,3 +486,15 @@ table.t tr:hover td { background: var(--hover); }
 }
 .mobile-only { display: none; } @media (max-width: 780px) { .mobile-only { display: grid; } }
 :root[data-theme="dark"], :root:not([data-theme]) { --bot-edge: transparent; }
+
+/* live browser view */
+.screen .win .live-shot { flex: 1; width: 100%; min-height: 0; object-fit: cover; object-position: top; display: block; background: #fff; }
+.screen .win .live-shot[hidden], .live-tag[hidden], .screen .win .content[hidden] { display: none; }
+.live-tag { display: inline-flex; align-items: center; gap: 4px; font: 600 9.5px/1 var(--mono); color: #ff6b6b; letter-spacing: .06em; }
+.live-tag i { width: 6px !important; height: 6px !important; background: #ff4d4f !important; border-radius: 50%; animation: livePulse 1.4s ease-in-out infinite; }
+@keyframes livePulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .live-tag i { animation: none; } }
+.bridge-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.bridge-status i { width: 8px; height: 8px; border-radius: 50%; background: var(--faint, #666); }
+.bridge-status.connected i { background: #43d17a; } .bridge-status.error i { background: #ff5d5d; }
+.team-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }

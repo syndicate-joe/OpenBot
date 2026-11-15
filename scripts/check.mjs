@@ -3,7 +3,7 @@ import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-const roots = ['server', 'public/js', 'electron', 'scripts'];
+const roots = ['server', 'public/js', 'electron', 'scripts', 'site/js'];
 const files = [];
 const walk = (d) => readdirSync(d).forEach((f) => { const p = join(d, f); statSync(p).isDirectory() ? walk(p) : /\.(m?js|cjs)$/.test(p) && files.push(p); });
 roots.forEach(walk);

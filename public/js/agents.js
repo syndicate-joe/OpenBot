@@ -189,6 +189,21 @@ async function computerTab(root, agent) {
   paintStatus();
   onPage('agent_status', (e) => e.agent_id === agent.id && paintStatus());
 
+  // Live view of the bot's real browser (Playwright). Falls back to the activity mock-up.
+  const shot = h('img.live-shot', { alt: `${agent.name}'s browser`, hidden: true });
+  const liveTag = h('span.live-tag', { hidden: true }, h('i'), 'LIVE');
+  let liveUrl = '';
+  const showLive = (e) => {
+    if (!e.live) { shot.hidden = true; liveTag.hidden = true; screenContent.hidden = false; return; }
+    shot.onload = () => { shot.hidden = false; screenContent.hidden = true; liveTag.hidden = false; };
+    shot.src = `/api/agents/${agent.id}/screen?t=${e.t || Date.now()}`;
+    liveUrl = e.url || liveUrl;
+    if (liveUrl) screenTb.textContent = liveUrl;
+    what.textContent = e.title ? `Browsing “${e.title}”` : 'Using the browser';
+  };
+  onPage('screen', (e) => e.agent_id === agent.id && showLive(e));
+  api.get(`/api/agents/${agent.id}/browser`).then((b) => b.live && showLive({ live: true })).catch(() => {});
+
   const drawFiles = async () => {
     const list = await api.get(`/api/agents/${agent.id}/files`);
     files.replaceChildren(...(list.length ? list.map((f) => h('div.f', { style: { paddingLeft: `${9 + (f.path.split('/').length - 1) * 14}px` }, onclick: () => !f.dir && open(f) },
@@ -224,7 +239,7 @@ async function computerTab(root, agent) {
     h('div.computer', {},
       h('div.bar', {}, h('b', {}, 'Computer'), h('div.spacer'), statusPill),
       what,
-      h('div.screen', {}, h('div.win', {}, h('div.tb', {}, h('i'), h('i'), h('i'), h('span', { style: { marginLeft: '6px', overflow: 'hidden', textOverflow: 'ellipsis' } }, screenTb)), screenContent))),
+      h('div.screen', {}, h('div.win', {}, h('div.tb', {}, h('i'), h('i'), h('i'), h('span', { style: { marginLeft: '6px', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 } }, screenTb), liveTag), screenContent, shot))),
     h('div.row', { style: { margin: '4px 2px 6px' } }, h('b.small', {}, 'Files'), h('div.spacer'), h('button.icon-btn', { onclick: drawFiles, title: 'Refresh' }, icon('refresh', 14))),
     files, preview,
     h('div', { style: { margin: '16px 2px 6px' } }, h('b.small', {}, 'Activity log')), term);

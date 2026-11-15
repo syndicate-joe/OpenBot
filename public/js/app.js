@@ -1,6 +1,6 @@
 import { icon } from './icons.js';
 import { setBotState } from './bot.js';
-import { h, avatar, toast, ago, clockTime, popMenu, groupAvatar } from './ui.js';
+import { h, avatar, toast, ago, clockTime, popMenu, groupAvatar, toggle, confirmBox } from './ui.js';
 import { api, on, onPage, clearPage, store, loadAgents, agentById } from './api.js';
 import { route, fallback, dispatch, navigate } from './router.js';
 import { agentsPage, agentPage, crewPage, tasksPage, inboxPage, routinesPage, assignTask, editAgent, newGroup, activityRow } from './agents.js';
@@ -277,8 +277,79 @@ async function settingsPage(root) {
       h('label.field', {}, h('span', {}, 'Whisper model'), h('select.input', { onchange: (e) => (whisper = e.target.value) },
         [['Xenova/whisper-tiny', 'Tiny: fastest'], ['Xenova/whisper-base', 'Base: balanced (default)'], ['Xenova/whisper-small', 'Small: most accurate'], ['distil-whisper/distil-small.en', 'Distil small (English, fast)']]
           .map(([v, l]) => h('option', { value: v, selected: v === whisper }, l))))),
+    await bridgesSection(section),
+    await teamSection(section),
     section('Notifications', null, h('div.row', {}, h('span', { style: { flex: 1 } }, 'Desktop notifications when bots finish or need you'), h('button.btn.sm', { onclick: () => window.Notification?.requestPermission().then((p) => toast(`Notifications ${p}`)) }, 'Enable'))),
     h('div.row', {}, h('button.btn.primary', { onclick: save }, 'Save changes'), h('div.spacer'), h('span.faint.small', {}, 'OpenBot · MIT'))));
+}
+
+// ---------------- bridges: text your bots from Telegram / Slack ----------------
+async function bridgesSection(section) {
+  let b;
+  try { b = await api.get('/api/bridges'); } catch { return null; }
+  const agentSel = (val, set) => h('select.input', { onchange: (e) => set(e.target.value) },
+    h('option', { value: '' }, 'First bot (default)'), ...store.agents.map((a) => h('option', { value: a.id, selected: a.id === val }, a.name)));
+  const status = (x) => h(`span.bridge-status.${x.status}`, {}, h('i'), x.status === 'connected' ? `Connected${x.error ? ` · ${x.error}` : ''}` : x.status === 'error' ? `Error: ${x.error}` : 'Off');
+  const tg = { ...b.telegram, allowed: (b.telegram.allowed || []).join(', ') };
+  const sl = { ...b.slack };
+  const tgStatus = h('span', {}, status(b.telegram));
+  const slStatus = h('span', {}, status(b.slack));
+  onPage('bridges', (e) => (e.kind === 'telegram' ? tgStatus : slStatus).replaceChildren(status(e)));
+  const save = async () => {
+    try { await api.put('/api/bridges', { telegram: tg, slack: sl }); toast('Bridges saved', 'Connecting…'); } catch (e) { toast('Could not save', e.message); }
+  };
+  const field = (label, input, hint) => h('label.field', {}, h('span', {}, label), input, hint ? h('div.small.faint', { style: { marginTop: '6px' } }, hint) : null);
+  return section('Bridges', 'Text your bots from your phone. Messages show up in the bot\'s chat here too. No public URL needed.',
+    h('div.row', { style: { marginBottom: '10px' } }, h('b', { style: { flex: 1 } }, 'Telegram'), tgStatus, toggle(tg.enabled, (v) => (tg.enabled = v))),
+    field('Bot token', h('input.input', { type: 'password', value: tg.token, placeholder: '123456:ABC… from @BotFather', oninput: (e) => (tg.token = e.target.value) }), 'Create a bot with @BotFather in Telegram, then paste its token.'),
+    field('Allowed chat IDs', h('input.input', { value: tg.allowed, placeholder: 'e.g. 123456789', oninput: (e) => (tg.allowed = e.target.value) }), 'Message your bot once; it replies with your chat ID. Only listed chats can talk to your bots.'),
+    field('Answers as', agentSel(tg.agentId, (v) => (tg.agentId = v))),
+    h('div.row', { style: { margin: '22px 0 10px' } }, h('b', { style: { flex: 1 } }, 'Slack'), slStatus, toggle(sl.enabled, (v) => (sl.enabled = v))),
+    field('App-level token', h('input.input', { type: 'password', value: sl.appToken, placeholder: 'xapp-… (Socket Mode, connections:write)', oninput: (e) => (sl.appToken = e.target.value) })),
+    field('Bot token', h('input.input', { type: 'password', value: sl.botToken, placeholder: 'xoxb-… (chat:write, im:history, app_mentions:read)', oninput: (e) => (sl.botToken = e.target.value) }), 'Enable Socket Mode and subscribe to message.im and app_mention events. DM the bot or @mention it in a channel.'),
+    field('Answers as', agentSel(sl.agentId, (v) => (sl.agentId = v))),
+    h('button.btn', { onclick: save }, 'Save bridges'));
+}
+
+// ---------------- team: multi-user mode with sign-in ----------------
+async function teamSection(section) {
+  const me = await api.get('/api/auth/me');
+  const body = h('div');
+  const draw = async () => {
+    const st = await api.get('/api/auth/me');
+    if (!st.enabled) {
+      body.replaceChildren(
+        h('div.row', {}, h('span', { style: { flex: 1 } }, 'Require sign-in (for sharing OpenBot with your team)'),
+          h('button.btn.sm', { onclick: async () => {
+            if (st.needsSetup) { location.href = '/login?next=/settings'; return; }
+            await api.put('/api/auth/config', { enabled: true }); location.href = '/login?next=/settings';
+          } }, st.needsSetup ? 'Set up team' : 'Turn on')),
+        h('p.small.faint', { style: { margin: '10px 0 0' } }, 'To share on your network run with OPENBOT_HOST=0.0.0.0; sign-in is then required automatically.'));
+      return;
+    }
+    const isAdmin = st.user?.role === 'admin';
+    const kids = [
+      h('div.row', { style: { marginBottom: '12px' } }, h('span', { style: { flex: 1 } }, 'Signed in as ', h('b', {}, st.user?.name || st.user?.username), st.user ? ` (${st.user.role})` : ''),
+        h('button.btn.sm.ghost', { onclick: async () => { await api.post('/api/auth/logout'); location.href = '/login'; } }, 'Sign out')),
+    ];
+    if (isAdmin) {
+      const users = await api.get('/api/users');
+      kids.push(...users.map((u) => h('div.team-row', {}, h('div', { style: { flex: 1 } }, h('b', {}, u.name), h('span.faint.small', {}, `  @${u.username}`)),
+        h('select.input', { style: { maxWidth: '120px' }, onchange: async (e) => { try { await api.patch(`/api/users/${u.id}`, { role: e.target.value }); toast('Role updated'); } catch (err) { toast('Could not update', err.message); draw(); } } },
+          ['member', 'admin'].map((r) => h('option', { value: r, selected: u.role === r }, r))),
+        u.id === st.user.id ? null : h('button.icon-btn', { title: `Remove ${u.username}`, onclick: async () => { if (await confirmBox(`Remove ${u.name}?`, 'They will be signed out and lose access.', 'Remove')) { await api.del(`/api/users/${u.id}`); draw(); } } }, icon('x', 14)))));
+      const nu = { username: '', password: '', role: 'member' };
+      kids.push(h('div.row.wrap', { style: { gap: '8px', marginTop: '14px' } },
+        h('input.input', { placeholder: 'username', style: { flex: 1, minWidth: '120px' }, oninput: (e) => (nu.username = e.target.value) }),
+        h('input.input', { placeholder: 'temporary password (8+)', type: 'password', style: { flex: 1, minWidth: '160px' }, oninput: (e) => (nu.password = e.target.value) }),
+        h('button.btn.sm', { onclick: async () => { try { await api.post('/api/users', nu); toast('Teammate added', `Share the password with ${nu.username} privately.`); draw(); } catch (e) { toast('Could not add', e.message); } } }, 'Add person')));
+      if (!st.forced) kids.push(h('div.row', { style: { marginTop: '16px' } }, h('span.small.muted', { style: { flex: 1 } }, 'Turn off sign-in (single-user, this computer only)'),
+        h('button.btn.sm.ghost', { onclick: async () => { await api.put('/api/auth/config', { enabled: false }); draw(); } }, 'Turn off')));
+    }
+    body.replaceChildren(...kids);
+  };
+  await draw();
+  return section('Team', me.enabled ? 'Everyone shares the same crew, chats and videos. Admins manage settings, bridges and people.' : 'OpenBot is in single-user mode on this computer.', body);
 }
 
 // ---------------- routes ----------------

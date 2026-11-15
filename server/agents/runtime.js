@@ -45,6 +45,7 @@ function systemPrompt(agent, thread, from, multi = false) {
     agent.instructions ? `Instructions from your user:\n${agent.instructions}` : '',
     `Current date/time: ${new Date().toString()}.`,
     `You have your own computer: a private workspace folder with a terminal, files and a web browser (tools). Work there; save deliverables as files when useful.`,
+    `For quick reading use browse. For JavaScript-heavy sites, multi-step flows or anything you need to click, use your real browser: browser_open, then browser_click / browser_type with the element numbers it returns. The user can watch your screen.`,
     `How to work: break tasks into steps, use tools to actually do the work (don't just describe it), verify results, then give a short, clear final answer with what you did and any links/files. When you learn a lasting preference or fact about the user, call remember. When you complete a repeatable procedure, consider save_skill.`,
     ask.length ? `These tools need the user's approval each time (the system will ask them; just call the tool): ${ask.join(', ')}.` : '',
     blocked.length ? `You are NOT allowed to use: ${blocked.join(', ')}.` : '',
@@ -218,15 +219,17 @@ export function stopRuns(threadId) {
 }
 
 // ---------------- user entry points ----------------
-export async function handleUserMessage(threadId, content) {
+export async function handleUserMessage(threadId, content, { via = null } = {}) {
   const thread = get('SELECT * FROM threads WHERE id = ?', threadId);
-  postMessage(threadId, { role: 'user', content });
+  postMessage(threadId, { role: 'user', content, meta: via ? { via } : null });
   const members = json(thread.members, []);
   const agents = members.map((id) => get('SELECT * FROM agents WHERE id = ?', id)).filter(Boolean);
   let targets = agents.filter((a) => new RegExp(`@${a.name}\\b`, 'i').test(content));
   if (!targets.length && /@(all|everyone|team)\b/i.test(content)) targets = agents;
   if (!targets.length) targets = agents.slice(0, 1); // the lead answers by default
-  for (const a of targets) await runAgent({ agentId: a.id, threadId, multi: targets.length > 1 });
+  const replies = [];
+  for (const a of targets) replies.push({ agent: a, text: await runAgent({ agentId: a.id, threadId, multi: targets.length > 1 }) });
+  return replies;
 }
 
 export function createTask({ agentId, title, prompt, routineId = null }) {
