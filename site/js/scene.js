@@ -215,7 +215,21 @@ function init() {
   // ---------- state ----------
   const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
   const cur = { e: 0, x: 0, y: 0, rotY: 0, s: 1 };
-  let progress = 0, active = -2, visible = true, w = 1, h = 1;
+  let progress = 0, active = -2, visible = true, w = 1, h = 1, navBottom = 72, textBoxes = [];
+  // Boxes of the hero text lines in CSS px (ignores the intro slide-up transform on the title spans).
+  function measureTitle() {
+    textBoxes = [];
+    for (const l of document.querySelectorAll('.hero-title .line')) {
+      const r = l.getBoundingClientRect(), sp = l.firstElementChild;
+      textBoxes.push({ left: r.left + sp.offsetLeft, right: r.left + sp.offsetLeft + sp.offsetWidth, top: r.top, bottom: r.bottom });
+    }
+    const eb = document.querySelector('.hero .eyebrow');
+    if (eb) {
+      const r = eb.getBoundingClientRect();
+      const last = [...eb.children].filter((c) => c.offsetParent).pop();
+      textBoxes.push({ left: r.left, right: last ? last.getBoundingClientRect().right : r.right, top: r.top, bottom: r.bottom });
+    }
+  }
   let blinkAt = performance.now() + 2500;
   const v3 = new THREE.Vector3();
 
@@ -225,6 +239,8 @@ function init() {
 
   function resize() {
     w = stage.clientWidth || innerWidth; h = stage.clientHeight || innerHeight;
+    navBottom = document.getElementById('nav')?.getBoundingClientRect().bottom || 72;
+    measureTitle();
     renderer.setPixelRatio(Math.min(devicePixelRatio, w < 700 ? 1.5 : 1.75));
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
@@ -246,13 +262,30 @@ function init() {
     const toAnat = smooth(0.1, 0.26, p);
     const steps = clamp((p - 0.26) / 0.68);
     const idx = p < 0.24 ? -1 : Math.min(5, Math.floor(steps * 6));
-    const heroX = mobile ? 0 : halfW * 0.52, heroY = mobile ? halfH * 0.56 : halfH * 0.3;
-    const anX = mobile ? 0 : -halfW * 0.24, anY = mobile ? halfH * 0.26 : 0.05;
+    // Keep the whole robot (antenna included) below the fixed header and inside the side margin.
+    const wpp = (2 * halfH) / h; // world units per CSS pixel at the head's depth
+    const ceiling = halfH - (navBottom + 36) * wpp;
+    const sAn = mobile ? 0.44 : 0.6;
+    const HERO_TOP = 1.62, HERO_BOTTOM = 1.08, HALF_W = 1.18; // head extents in head units (antenna, chin, ears)
+    const EXPLODED_TOP = 2.45;
+    // Pick the biggest head that fits under the header, inside the right margin, without covering any text line.
+    const maxS = mobile ? 0.74 : 0.86;
+    let sHero = 0.42, heroX = 0, heroY = 0;
+    for (let sc = maxS; sc >= 0.42; sc -= 0.02) {
+      const x = mobile ? 0 : Math.min(halfW * 0.52, halfW - HALF_W * sc - 40 * wpp);
+      const y = Math.min(mobile ? halfH * 0.56 : halfH * 0.3, ceiling - HERO_TOP * sc);
+      const px = { left: ((x - HALF_W * sc + halfW) / (2 * halfW)) * w, right: ((x + HALF_W * sc + halfW) / (2 * halfW)) * w, top: (halfH - (y + HERO_TOP * sc)) / wpp, bottom: (halfH - (y - HERO_BOTTOM * sc)) / wpp };
+      sHero = sc; heroX = x; heroY = y;
+      const hits = textBoxes.some((t) => t.right > px.left + 8 && t.left < px.right - 8 && t.bottom > px.top + 6 && t.top < px.bottom - 6);
+      if (!hits) break;
+    }
+    const anX = mobile ? 0 : -halfW * 0.24;
+    const anY = Math.min(mobile ? halfH * 0.26 : 0.05, ceiling - EXPLODED_TOP * sAn);
     return {
       e: smooth(0.18, 0.5, p),
       x: lerp(heroX, anX, toAnat), y: lerp(heroY, anY, toAnat),
       rotY: idx < 0 ? lerp(-0.25, 0.55, toAnat) : ANG[idx],
-      s: mobile ? lerp(0.74, 0.44, toAnat) : lerp(0.86, 0.6, toAnat),
+      s: lerp(sHero, sAn, toAnat),
       idx, toAnat,
     };
   }
@@ -359,6 +392,7 @@ function init() {
 
   resize();
   readScroll();
+  document.fonts?.ready.then(() => { measureTitle(); kick(); });
   Object.assign(cur, target()); // first frame starts settled
   if (reduced) setActive(-1);
   kick();

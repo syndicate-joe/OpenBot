@@ -150,11 +150,12 @@ section.how, section.crew, section.new, section.compare, section.faq { padding-t
 
 /* ---------------- product deck ---------------- */
 .deck-track { height: 420vh; position: relative; margin-top: clamp(80px, 14vh, 170px); }
-.deck-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; display: grid; grid-template-columns: minmax(280px, 0.8fr) 1.6fr; align-items: center; overflow: hidden; padding-right: var(--gutter); }
-.deck-copy { padding-right: 24px; position: relative; z-index: 2; }
-.deck-copy .display { font-size: clamp(34px, 4.4vw, 76px); }
+.deck-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; display: grid; grid-template-columns: minmax(300px, 1fr) minmax(0, 1.75fr); align-items: center; overflow: hidden; padding-right: var(--gutter); }
+.deck-copy { padding-right: clamp(20px, 3vw, 48px); position: relative; z-index: 2; container-type: inline-size; min-width: 0; }
+/* sized from the column itself so the longest word ("MESSENGER") always fits beside the screenshots */
+.deck-copy .display { font-size: clamp(30px, 13.5cqi, 84px); overflow-wrap: normal; }
 .deck-caption { min-height: 3.2em; margin: 22px 0; max-width: 320px; transition: opacity 0.3s; }
-.deck { position: relative; aspect-ratio: 16 / 10; perspective: 1600px; }
+.deck { position: relative; z-index: 1; aspect-ratio: 16 / 10; perspective: 1600px; min-width: 0; }
 .deck .card { position: absolute; inset: 0; margin: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line-2); background: #000; box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.8); transform-origin: 50% 100%; will-change: transform, opacity; }
 .deck .card img { width: 100%; height: 100%; object-fit: cover; }
 .play svg { width: 16px; height: 16px; }
@@ -298,7 +299,20 @@ thead .us { color: var(--accent); }
 .foot-grid a { display: block; color: var(--muted); text-decoration: none; padding: 4px 0; font-size: 14px; }
 .foot-grid a:hover { color: var(--text); }
 .foot .fine { align-self: end; justify-self: end; max-width: 360px; text-align: right; }
-.wordmark { margin: 40px 0 -0.18em; text-align: center; font: 800 19vw/0.8 var(--display); font-stretch: 112%; letter-spacing: -0.04em; color: transparent; -webkit-text-stroke: 1px rgba(255, 255, 255, 0.16); white-space: nowrap; user-select: none; }
+/* footer wordmark: SVG so it always spans the width exactly, never overflowing */
+.wordmark { position: relative; margin-top: 40px; line-height: 0; user-select: none; }
+.wordmark svg { position: relative; z-index: 1; display: block; width: 100%; height: auto; overflow: visible; }
+.wordmark text { font-family: var(--display); font-weight: 800; font-stretch: 112%; font-size: 196px; letter-spacing: -0.02em; }
+.wm-stroke { fill: var(--bg); stroke: rgba(255, 255, 255, 0.2); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.wm-stroke tspan { transition: fill 0.5s var(--ease), stroke 0.5s; }
+.wm-stroke tspan:hover { fill: #1a1530; stroke: rgba(185, 166, 255, 0.9); }
+.wm-sweep { fill: url(#wmSweep); opacity: 0; pointer-events: none; mix-blend-mode: screen; transition: opacity 1.2s 1.6s; }
+.ready .wm-stroke { stroke-dasharray: 1300; stroke-dashoffset: 1300; transition: stroke-dashoffset 2.6s var(--ease); }
+.wordmark.in .wm-stroke { stroke-dashoffset: 0; }
+.wordmark.in .wm-sweep { opacity: 0.38; }
+.peek { position: absolute; z-index: 0; bottom: 60%; left: 0; width: clamp(70px, 9vw, 130px); transform: translate3d(var(--px, 50vw), 85%, 0); transition: transform 0.9s var(--ease); pointer-events: none; }
+.wordmark.in .peek { transform: translate3d(var(--px, 50vw), -22%, 0) rotate(var(--pr, 0deg)); transition: transform 0.6s var(--ease); }
+.peek svg.bot { width: 100%; height: auto; overflow: visible; }
 
 /* ---------------- video dialog ---------------- */
 .video-dialog { width: min(1100px, 94vw); padding: 0; border: 1px solid var(--line-2); border-radius: 16px; background: #000; overflow: visible; }
@@ -366,4 +380,6 @@ thead .us { color: var(--accent); }
   .deck { aspect-ratio: auto; }
   .ready .reveal { opacity: 1; transform: none; }
   .big-quote .w { opacity: 1; }
+  .ready .wm-stroke { stroke-dasharray: none; }
+  .wm-sweep { display: none; }
 }

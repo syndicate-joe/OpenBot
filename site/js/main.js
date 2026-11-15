@@ -206,6 +206,36 @@ if (fb) {
   }
 }
 
+// ---------------- footer: wordmark draws itself, Nova peeks over it ----------------
+const wordmark = $('#wordmark');
+const peek = $('#peek');
+if (wordmark && peek) {
+  const nova = CREW[0];
+  const svg = botSVG({ ...nova.look, color: nova.color }, { state: 'idle', seed: 4242 });
+  peek.appendChild(svg);
+  let px = innerWidth * 0.5, tx = px, inView = false;
+  new IntersectionObserver(([en]) => {
+    if (en.isIntersecting) wordmark.classList.add('in');
+    inView = en.isIntersecting;
+    if (inView && !reduced) requestAnimationFrame(follow);
+  }, { threshold: 0.35 }).observe(wordmark);
+  addEventListener('pointermove', (e) => { tx = e.clientX; }, { passive: true });
+  function follow() {
+    const wPeek = peek.offsetWidth;
+    const target = Math.min(innerWidth - wPeek - 16, Math.max(16, tx - wPeek / 2));
+    const dx = target - px;
+    px += dx * 0.06;
+    peek.style.setProperty('--px', `${px}px`);
+    peek.style.setProperty('--pr', `${Math.max(-12, Math.min(12, dx * 0.04))}deg`);
+    // eyes look toward the cursor
+    const g = Math.max(-5, Math.min(5, dx * 0.05));
+    svg.style.setProperty('--gx', `${g}px`);
+    svg.style.setProperty('--gy', '-3px');
+    if (inView) requestAnimationFrame(follow);
+  }
+  peek.style.setProperty('--px', `${px - 50}px`);
+}
+
 // ---------------- magnetic buttons ----------------
 if (!reduced && matchMedia('(pointer: fine)').matches) {
   $$('.magnetic').forEach((el) => {

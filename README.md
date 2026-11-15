@@ -18,12 +18,14 @@ Plus a video brain that transcribes, understands and searches every video you ow
 [![Electron](https://img.shields.io/badge/desktop-Electron-47848f?style=for-the-badge&logo=electron&logoColor=white)](electron/main.cjs)
 [![Ollama](https://img.shields.io/badge/models-Ollama%20%7C%20Groq%20%7C%20Gemini-f2a65a?style=for-the-badge)](#-free-model-options)
 [![CI](https://img.shields.io/github/actions/workflow/status/satiricalguru/OpenBot/ci.yml?style=for-the-badge&label=CI)](.github/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/satiricalguru/OpenBot?style=for-the-badge&label=release&color=8b6cff)](https://github.com/satiricalguru/OpenBot/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/satiricalguru/OpenBot/total?style=for-the-badge&color=222)](https://github.com/satiricalguru/OpenBot/releases)
 
 <a href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-mac-arm64.dmg"><img src="https://img.shields.io/badge/Download%20for%20macOS-ffffff?style=for-the-badge&logo=apple&logoColor=black" alt="Download for macOS" height="40"></a>&nbsp;
 <a href="https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-windows-x64-setup.exe"><img src="https://img.shields.io/badge/Download%20for%20Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" height="40"></a>&nbsp;
-<a href="https://satiricalguru.github.io/OpenBot/"><img src="https://img.shields.io/badge/Website-8b6cff?style=for-the-badge&logo=threedotjs&logoColor=white" alt="OpenBot website" height="40"></a>
+<a href="https://openbot-zeta.vercel.app"><img src="https://img.shields.io/badge/Website-8b6cff?style=for-the-badge&logo=vercel&logoColor=white" alt="OpenBot website" height="40"></a>
 
-[**Website**](https://satiricalguru.github.io/OpenBot/) · [**Quick start**](#-quick-start) · [**Features**](#-features) · [**Screenshots**](#-screenshots) · [**Demo video**](docs/assets/demo.mp4) · [**How it works**](#-how-it-works) · [**Contributing**](CONTRIBUTING.md)
+[**Website**](https://openbot-zeta.vercel.app) · [**Quick start**](#-quick-start) · [**Features**](#-features) · [**Screenshots**](#-screenshots) · [**Demo video**](docs/assets/demo.mp4) · [**How it works**](#-how-it-works) · [**Contributing**](CONTRIBUTING.md)
 
 <br>
 
@@ -31,7 +33,16 @@ Plus a video brain that transcribes, understands and searches every video you ow
 
 <sub>▶ A real, unedited capture of the desktop app running on a laptop with a local model. <a href="docs/assets/demo.mp4">Watch the MP4</a></sub>
 
+<br><br>
+
+<a href="https://openbot-zeta.vercel.app"><img src="docs/assets/website.gif" alt="The OpenBot website: Nova follows the cursor, then splits into a line-art exploded view of its parts as you scroll" width="92%"></a>
+
+<sub>🌐 <a href="https://openbot-zeta.vercel.app"><b>openbot-zeta.vercel.app</b></a>: the download site, with a Three.js hero and a scroll-driven exploded view of a bot. <a href="docs/assets/website.mp4">MP4</a></sub>
+
 </div>
+
+> [!NOTE]
+> **New in 0.3.0:** bots drive a real browser you can watch live, you can text them from Telegram or Slack, there are native installers for **Windows** and Linux, and team mode adds sign-in. [Release notes →](https://github.com/satiricalguru/OpenBot/releases/tag/v0.3.0)
 
 ---
 
@@ -58,11 +69,13 @@ Always-on AI teammates arrived in 2026, but they sit behind expensive plans. Ope
 
 **Option A: download the app.**
 
-| Platform | Download | First launch |
-|---|---|---|
-| **macOS** (Apple silicon) | [OpenBot-mac-arm64.dmg](https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-mac-arm64.dmg) | Not notarized yet: **System Settings → Privacy & Security → Open Anyway** |
-| **Windows** 10/11 (x64) | [OpenBot-windows-x64-setup.exe](https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-windows-x64-setup.exe) | Unsigned: SmartScreen → **More info → Run anyway** |
-| **Linux** (x86_64) | [AppImage](https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-linux-x86_64.AppImage) · [.deb](https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-linux-amd64.deb) | `chmod +x` the AppImage |
+Current version: **v0.3.0** (Nov 15, 2026). Every link below always points to the latest release.
+
+| Platform | Download | Size | First launch |
+|---|---|---|---|
+| **macOS** (Apple silicon) | [OpenBot-mac-arm64.dmg](https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-mac-arm64.dmg) · [.zip](https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-mac-arm64.zip) | ~228 MB | Not notarized yet: **System Settings → Privacy & Security → Open Anyway** |
+| **Windows** 10/11 (x64) | [OpenBot-windows-x64-setup.exe](https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-windows-x64-setup.exe) | ~219 MB | Unsigned: SmartScreen → **More info → Run anyway** |
+| **Linux** (x86_64) | [AppImage](https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-linux-x86_64.AppImage) · [.deb](https://github.com/satiricalguru/OpenBot/releases/latest/download/OpenBot-linux-amd64.deb) | ~448 / 361 MB | `chmod +x` the AppImage |
 
 You'll still need `ffmpeg` and a free model: `brew install ffmpeg ollama` (macOS) or `winget install Gyan.FFmpeg Ollama.Ollama` (Windows), then `ollama pull qwen3:8b`.
 
@@ -256,7 +269,7 @@ public/
   app.css          design system (dark default + light)
 scripts/
   capture.cjs      regenerates README screenshots/GIFs/video
-site/              landing page (Three.js), deployed to GitHub Pages
+site/              landing page (Three.js), deployed to Vercel (openbot-zeta.vercel.app) and GitHub Pages
 docs/assets/       README media
 ```
 
